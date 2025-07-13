@@ -37,13 +37,28 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str
     CELERY_RESULT_BACKEND: str
 
-    # Stripe Configuration
-    STRIPE_TEST_SECRET_KEY: str
-    STRIPE_TEST_PUBLISHABLE_KEY: str
-    STRIPE_TEST_PRICE_ID_PRO: str
+    # Stripe Configuration - with better error handling
+    STRIPE_TEST_SECRET_KEY: Optional[str] = None
+    STRIPE_TEST_PUBLISHABLE_KEY: Optional[str] = None
+    STRIPE_TEST_PRICE_ID_PRO: Optional[str] = None
     
     # Webhook configuration
-    STRIPE_WEBHOOK_SECRET: str
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    
+    def validate_stripe_config(self):
+        """Validate that all required Stripe environment variables are set"""
+        missing_vars = []
+        if not self.STRIPE_TEST_SECRET_KEY:
+            missing_vars.append("STRIPE_TEST_SECRET_KEY")
+        if not self.STRIPE_TEST_PUBLISHABLE_KEY:
+            missing_vars.append("STRIPE_TEST_PUBLISHABLE_KEY")
+        if not self.STRIPE_TEST_PRICE_ID_PRO:
+            missing_vars.append("STRIPE_TEST_PRICE_ID_PRO")
+        if not self.STRIPE_WEBHOOK_SECRET:
+            missing_vars.append("STRIPE_WEBHOOK_SECRET")
+        
+        if missing_vars:
+            raise ValueError(f"Missing required Stripe environment variables: {', '.join(missing_vars)}")
 
     class Config:
         env_file = '.env'
