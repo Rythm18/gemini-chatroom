@@ -9,7 +9,7 @@ from alembic import context
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import Base
+from app.core.database import Base, POSTGRES_URL
 from app.models import *
 
 config = context.config
@@ -21,7 +21,9 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    url = config.get_main_option("sqlalchemy.url")
+    """Run migrations in 'offline' mode.
+    """
+    url = POSTGRES_URL
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -34,8 +36,13 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    """Run migrations in 'online' mode.
+        """
+    configuration = config.get_section(config.config_ini_section)
+    configuration['sqlalchemy.url'] = POSTGRES_URL
+    
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
