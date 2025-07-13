@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Production start script for FastAPI application
+echo "Installing dependencies with binary-only flags..."
+pip install --only-binary=:all: --prefer-binary --no-cache-dir -r requirements.txt
 
 # Run database migrations
 echo "Running database migrations..."

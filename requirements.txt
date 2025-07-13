@@ -8,18 +8,15 @@ sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 alembic==1.13.0
 
-# Connection pooling for external connections
-psycopg2-pool==1.1
-
 # Environment and configuration
 python-dotenv==1.0.0
 pydantic[email]==2.5.0
 pydantic-settings==2.1.0
-
-# Authentication and security
+    
 PyJWT==2.8.0
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
+cryptography==41.0.7
 
 # Payment processing
 stripe==7.8.0
@@ -36,3 +33,11 @@ google-generativeai==0.3.2
 
 # Additional utilities
 python-multipart==0.0.6
+
+# Kombu for Celery
+kombu==5.3.4
+
+# Additional dependencies
+click==8.1.7
+billiard==4.2.0
+vine==5.1.0
