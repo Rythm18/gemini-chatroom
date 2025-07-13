@@ -1,0 +1,42 @@
+
+# Core FastAPI and web server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+gunicorn==21.2.0
+
+# Database and ORM
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9  # binary version avoids compilation
+alembic==1.13.0
+
+# Environment and configuration
+python-dotenv==1.0.0
+pydantic==2.5.0  # removed [email] to avoid cryptography issues
+pydantic-settings==2.1.0
+
+# Authentication and security - older versions with pre-compiled wheels
+PyJWT==2.8.0
+passlib==1.7.4  # removed [bcrypt] to avoid compilation
+python-jose==3.3.0  # removed [cryptography] to avoid compilation
+
+# Payment processing
+stripe==7.8.0
+
+# Queue and caching - older stable versions
+celery==5.2.7
+redis==4.6.0
+
+# HTTP client for external APIs
+httpx==0.25.2
+
+# Google Gemini API
+google-generativeai==0.3.2
+
+# Additional utilities
+python-multipart==0.0.6
+
+# Explicit Celery dependencies
+kombu==5.2.4
+click==8.1.7
+billiard==3.6.4.0
+vine==5.0.0 
