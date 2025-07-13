@@ -87,12 +87,59 @@ A comprehensive backend system that enables user-specific chatrooms, OTP-based a
    redis-server
    ```
 
-### Step 3: Environment Variables
+### Step 3: Get API Keys
+
+#### **Google Gemini API Key**
+
+1. **Visit Google AI Studio:**
+   - Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - Sign in with your Google account
+
+2. **Create API Key:**
+   - Click "Create API Key"
+   - Select a Google Cloud project (or create a new one)
+   - Copy the generated API key
+
+3. **Enable API (if needed):**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Navigate to "APIs & Services" > "Library"
+   - Search for "Generative Language API"
+   - Enable the API for your project
+
+#### 💳 **Stripe API Keys**
+
+1. **Create Stripe Account:**
+   - Go to [Stripe Dashboard](https://dashboard.stripe.com/)
+   - Sign up for a free account
+   - Complete account verification
+
+2. **Get API Keys:**
+   - In the Stripe Dashboard, go to "Developers" > "API Keys"
+   - Copy the **Publishable Key** and **Secret Key** from the "Test Data" section
+
+3. **Create Price ID:**
+   - Go to "Products" > "Create Product"
+   - Add a product (e.g., "Pro Subscription")
+   - Set pricing (e.g, $0/month) (recommenede for easier webhook flow)
+   - Copy the **Price ID** from the pricing section
+
+4. **Setup Webhook:**
+   - Go to "Developers" > "Webhooks"
+   - Click "Add endpoint"
+   - Set up ngrok for localhost 8000
+   - ```bash
+    ngrok http 8000
+    ```
+   - Add endpoint URL: `https://{ngrok-url}/api/v1/webhooks/stripe`
+   - Select events: `invoice.payment_succeeded`, `customer.subscription.updated`, `customer.subscription.deleted`
+   - Copy the **Webhook Secret** from the webhook details
+
+### Step 4: Environment Variables
 
 Create a `.env` file in the root directory and copy the contents of .env.example
 
 
-### Step 4: Database Migrations
+### Step 5: Database Migrations
 
 ```bash
 alembic revision --autogenerate -m "Initial migration"
@@ -100,7 +147,7 @@ alembic revision --autogenerate -m "Initial migration"
 alembic upgrade head
 ```
 
-### Step 5: Run the Application
+### Step 6: Run the Application
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -121,7 +168,7 @@ Access the API documentation and enpoints at:
 2. **Redis**: Required for caching and message queuing
 3. **Environment Variables**: All sensitive keys should be set in `.env`
 4. **Migrations**: Always run migrations when database schema changes
-5. **API Keys**: Get your Google Gemini API key from Google AI Studio
+5. **API Keys**: Follow the detailed instructions above to get your Google Gemini and Stripe API keys
 
 
 ### Health Check
