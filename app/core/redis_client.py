@@ -11,12 +11,23 @@ class RedisClient:
     
     def __init__(self):
         try:
+            ssl_config = {}
+            if settings.REDIS_URL.startswith('rediss://'):
+                ssl_config = {
+                    'ssl_cert_reqs': 'none',
+                    'ssl_ca_certs': None,
+                    'ssl_certfile': None,
+                    'ssl_keyfile': None,
+                }
+            
             self.redis_client = redis.from_url(
                 settings.REDIS_URL,
                 decode_responses=True,
-                socket_connect_timeout=5,
-                socket_timeout=5,
-                retry_on_timeout=True
+                socket_connect_timeout=10,
+                socket_timeout=10,
+                retry_on_timeout=True,
+                health_check_interval=30,
+                **ssl_config
             )
             self.redis_client.ping()
             logger.info("Redis connection established successfully")
@@ -135,4 +146,5 @@ class RedisClient:
             logger.error(f"Redis EXISTS error: {e}")
             return False
 
+# Global Redis client instance
 redis_client = RedisClient() 
