@@ -1,43 +1,37 @@
-# Core FastAPI and web server
+# Core FastAPI and ASGI server
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 gunicorn==21.2.0
 
-# Database and ORM
+# Database
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 alembic==1.13.0
 
-# Environment and configuration
+# Config and validation
 python-dotenv==1.0.0
 pydantic[email]==2.5.0
 pydantic-settings==2.1.0
-    
+
+# Auth & Security
 PyJWT==2.8.0
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
 cryptography==41.0.7
 
-# Payment processing
+# Payments
 stripe==7.8.0
 
-# Queue and caching
+# Background tasks & caching
 celery==5.3.4
 redis==5.0.1
 
-# HTTP client for external APIs
+# External API / HTTP
 httpx==0.25.2
-
-# Google Gemini API
 google-generativeai==0.3.2
 
-# Additional utilities
+# File upload
 python-multipart==0.0.6
 
-# Kombu for Celery
-kombu==5.3.4
-
-# Additional dependencies
+# CLI utils
 click==8.1.7
-billiard==4.2.0
-vine==5.1.0
