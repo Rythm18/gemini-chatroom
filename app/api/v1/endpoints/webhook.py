@@ -9,7 +9,6 @@ import json
 
 logger = logging.getLogger(__name__)
 
-# Validate Stripe configuration on module load
 try:
     settings.validate_stripe_config()
     stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
