@@ -9,12 +9,8 @@ import json
 
 logger = logging.getLogger(__name__)
 
-try:
-    settings.validate_stripe_config()
-    stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
-except ValueError as e:
-    logger.error(f"Stripe configuration error: {e}")
-    stripe.api_key = None
+stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+print(f"Stripe API key set: {bool(stripe.api_key)}")
 
 router = APIRouter()
 

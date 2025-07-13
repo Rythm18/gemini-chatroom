@@ -10,6 +10,11 @@ import json
 
 logger = logging.getLogger(__name__)
 
+# Debug print statements
+print(f"STRIPE_TEST_SECRET_KEY: {settings.STRIPE_TEST_SECRET_KEY}")
+print(f"STRIPE_TEST_PRICE_ID_PRO: {settings.STRIPE_TEST_PRICE_ID_PRO}")
+print(f"Stripe API key set: {bool(settings.STRIPE_TEST_SECRET_KEY)}")
+
 stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 
 class CheckoutResponse(BaseModel):
@@ -42,6 +47,9 @@ async def subscribe_pro(
                 detail="User already has Pro subscription"
             )
         
+        # Debug print statements before creating checkout session
+        print(f"current_user: {settings.STRIPE_TEST_SECRET_KEY}")
+        db.refresh(current_user)
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
