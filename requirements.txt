@@ -4,13 +4,13 @@ uvicorn[standard]==0.24.0
 gunicorn==21.2.0
 
 # Database
-sqlalchemy==2.0.23
+sqlalchemy==2.0.36  # Updated to latest version
 psycopg2-binary==2.9.9
-alembic==1.13.0
+alembic==1.13.2     # Updated to latest version
 
 # Config and validation
 python-dotenv==1.0.0
-pydantic==2.9.2
+pydantic[email]==2.9.2
 pydantic-settings==2.5.0
 
 # Auth & Security
