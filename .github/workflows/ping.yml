@@ -1,0 +1,13 @@
+name: For keeping Render App Awake
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # every 30 mins
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curl the Render app
+        run: curl -sSf https://gemini-chatroom.onrender.com/health || echo "Ping failed"
