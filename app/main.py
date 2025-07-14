@@ -11,9 +11,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Note: Database tables should be created via Alembic migrations
-# Run: alembic upgrade head
-
 # Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
@@ -22,19 +19,17 @@ app = FastAPI(
     debug=settings.DEBUG,
 )
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure based on your needs
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include API routes
+
 app.include_router(api.router, prefix="/api/v1")
 
-# Global exception handlers
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
@@ -58,7 +53,7 @@ async def general_exception_handler(request: Request, exc: Exception):
         },
     )
 
-# Health check endpoint
+
 @app.get("/health")
 async def health_check():
     return {
