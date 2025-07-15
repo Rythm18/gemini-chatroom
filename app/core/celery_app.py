@@ -38,7 +38,7 @@ config_dict = {
 
 if settings.CELERY_BROKER_URL.startswith('rediss://'):
     config_dict['broker_use_ssl'] = {
-        'ssl_cert_reqs': 'none',
+        'ssl_cert_reqs': 'CERT_NONE',
         'ssl_ca_certs': None,
         'ssl_certfile': None,
         'ssl_keyfile': None,
@@ -46,7 +46,7 @@ if settings.CELERY_BROKER_URL.startswith('rediss://'):
 
 if settings.CELERY_RESULT_BACKEND.startswith('rediss://'):
     config_dict['result_backend_transport_options'] = {
-        'ssl_cert_reqs': 'none',
+        'ssl_cert_reqs': 'CERT_NONE',
         'ssl_ca_certs': None,
         'ssl_certfile': None,
         'ssl_keyfile': None,
