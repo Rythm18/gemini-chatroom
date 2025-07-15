@@ -28,9 +28,21 @@ def process_ai_message(self, message_id: int, user_message: str, chatroom_id: in
     Returns:
         dict: Task result with AI response details
     """
+    task_id = self.request.id
     db = SessionLocal()
     
     try:
+        redis_client.set(
+            f"task:{task_id}:status",
+            {
+                "status": "processing",
+                "message_id": message_id,
+                "chatroom_id": chatroom_id,
+                "user_id": user_id,
+                "created_at": time.time()
+            },
+            expire_seconds=3600  # 1 hour
+        )
         
         user_msg = db.query(Message).filter(Message.id == message_id).first()
         if not user_msg:
@@ -72,14 +84,25 @@ def process_ai_message(self, message_id: int, user_message: str, chatroom_id: in
         
         logger.info(f"AI response generated successfully for message_id: {message_id}")
         
-        return {
+        result = {
+            "status": "completed",
             "success": True,
             "message_id": message_id,
             "ai_message_id": ai_message.id,
+            "ai_content": ai_content,
             "processing_time": ai_response_result.get("processing_time", 0),
             "model": ai_response_result.get("model", "unknown"),
-            "ai_content": ai_content[:100] + "..." if len(ai_content) > 100 else ai_content
+            "completed_at": time.time(),
+            "user_id": user_id,
         }
+        
+        redis_client.set(
+            f"task:{task_id}:status",
+            result,
+            expire_seconds=3600  # 1 hour
+        )
+        
+        return result
         
     except Exception as e:
         logger.error(f"Error processing AI message {message_id}: {e}")
@@ -104,16 +127,27 @@ def process_ai_message(self, message_id: int, user_message: str, chatroom_id: in
             logger.error(f"Error updating message status: {commit_error}")
             db.rollback()
         
+        error_result = {
+            "status": "failed",
+            "success": False,
+            "message_id": message_id,
+            "user_id": user_id,
+            "chatroom_id": chatroom_id,
+            "error": str(e),
+            "failed_at": time.time()
+        }
+        
+        redis_client.set(
+            f"task:{task_id}:status",
+            error_result,
+            expire_seconds=3600  # 1 hour
+        )
+        
         if self.request.retries < self.max_retries:
             logger.info(f"Retrying AI message processing for message_id: {message_id} (attempt {self.request.retries + 1})")
             raise self.retry(exc=e)
         
-        return {
-            "success": False,
-            "message_id": message_id,
-            "error": str(e),
-            "max_retries_exceeded": True
-        }
+        return error_result
         
     finally:
         db.close()

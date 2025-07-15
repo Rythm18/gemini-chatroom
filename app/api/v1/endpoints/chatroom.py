@@ -12,6 +12,7 @@ from app.services.chatroom_service import ChatroomService
 from app.services.message_service import MessageService
 from app.models.user import User
 import logging
+from app.models.message import Message
 
 logger = logging.getLogger(__name__)
 
@@ -148,11 +149,13 @@ async def send_message(
     db: Session = Depends(get_db)
 ):
     """
-    Send a message to a chatroom and get AI response immediately
+    Send a message to a chatroom and get task ID for background AI response
     
     **Rate Limiting:**
     - **Basic tier**: 5 messages per day
     - **Pro tier**: Unlimited messages
+    
+    **Returns:** Task ID to track AI response progress
     """
     
     try:
@@ -182,38 +185,26 @@ async def send_message(
         
         user_message = result["user_message"]
         
-        ai_response_result = await MessageService.generate_ai_response_sync(
-            user_message_id=user_message.id,
-            user_message_content=message_data.content,
+        from app.tasks.message_tasks import process_ai_message
+        task = process_ai_message.delay(
+            message_id=user_message.id,
+            user_message=message_data.content,
             chatroom_id=chatroom_id,
-            user_id=current_user.id,
-            db=db
+            user_id=current_user.id
         )
         
         user_message_response = MessageResponse.from_orm(user_message)
         
-        response_data = {
-            "user_message": user_message_response.dict(),
-        }
-        
-        if ai_response_result["success"]:
-            ai_message_response = MessageResponse.from_orm(ai_response_result["ai_message"])
-            response_data["ai_response"] = ai_message_response.dict()
-            return SuccessResponse(
-                success=True,
-                message="Message sent and AI response generated successfully",
-                data=response_data
-            )
-        else:
-            response_data["ai_response"] = {
-                "error": "AI response generation failed",
-                "fallback_message": "I apologize, but I'm unable to respond at the moment. Please try again."
+        return SuccessResponse(
+            success=True,
+            message="Message sent successfully. AI response is being generated in background.",
+            data={
+                "user_message": user_message_response.dict(),
+                "task_id": task.id,
+                "task_status": "processing",
+                "check_status_url": f"/api/v1/chatroom/task/{task.id}/status"
             }
-            return SuccessResponse(
-                success=True,
-                message="Message sent successfully, but AI response failed",
-                data=response_data
-            )
+        )
         
     except HTTPException:
         raise
@@ -222,4 +213,87 @@ async def send_message(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send message"
+        )
+
+@router.get("/task/{task_id}/status", response_model=SuccessResponse)
+async def get_task_status(
+    task_id: str,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get the status of a background AI response task
+    
+    **Returns:** Task status and result if completed
+    """
+    
+    try:
+        from app.core.redis_client import redis_client
+        import json
+        
+        task_data_str = redis_client.get(f"task:{task_id}:status")
+        if not task_data_str:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Task not found or expired"
+            )
+        
+        try:
+            task_data = json.loads(task_data_str)
+        except json.JSONDecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Invalid task data format"
+            )
+        
+        task_user_id = task_data.get("user_id")
+        if not task_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Task data is incomplete"
+            )
+            
+        if task_user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied to this task"
+            )
+        
+        response_data = {
+            "task_id": task_id,
+            "status": task_data.get("status", "unknown"),
+        }
+        
+        if task_data.get("status") == "completed":
+            ai_message = db.query(Message).filter(
+                Message.id == task_data.get("ai_message_id")
+            ).first()
+            
+            if ai_message:
+                ai_message_response = MessageResponse.from_orm(ai_message)
+                response_data.update({
+                    "ai_response": ai_message_response.dict(),
+                    "processing_time": task_data.get("processing_time"),
+                    "model": task_data.get("model")
+                })
+        
+        elif task_data.get("status") == "failed":
+            response_data["error"] = task_data.get("error", "Unknown error")
+        
+        elif task_data.get("status") == "processing":
+            response_data["message"] = "AI response is still being generated"
+        
+        return SuccessResponse(
+            success=True,
+            message=f"Task status: {task_data.get('status', 'unknown')}",
+            data=response_data
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get task status error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get task status"
         ) 

@@ -74,7 +74,7 @@ class GeminiService:
                 "success": True,
                 "content": response.strip(),
                 "processing_time": processing_time,
-                "model": "gemini-1.5-flash",
+                "model": "gemini-2.0-flash-lite",
                 "token_count": len(response.split()) if response else 0
             }
             
