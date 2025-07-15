@@ -127,7 +127,7 @@ A comprehensive backend system that enables user-specific chatrooms, OTP-based a
    - Go to "Developers" > "Webhooks"
    - Click "Add endpoint"
    - Set up ngrok for localhost 8000
-   - ```bash
+   ```bash
     ngrok http 8000
     ```
    - Add endpoint URL: `https://{ngrok-url}/api/v1/webhooks/stripe`
